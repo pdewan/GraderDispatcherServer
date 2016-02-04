@@ -1,6 +1,5 @@
 package edu.unc.cs.niograderserver.graderHandler.sql;
 
-import com.sun.istack.internal.logging.Logger;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -8,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * @author Andrew Vitkus
@@ -15,7 +15,7 @@ import java.util.Properties;
  */
 public class DatabaseWriter implements IDatabaseWriter {
     
-    Logger LOG = Logger.getLogger(DatabaseWriter.class);
+    Logger LOG = Logger.getLogger(DatabaseWriter.class.getName());
 
     private Connection connection;
     private IDatabaseReader reader;
