@@ -39,7 +39,7 @@
             <repository>
                 <id>classroom</id>
                 <name>classroom-repo</name>
-                <url>scp://classroom.cs.unc.edu/afs/cs.unc.edu/home/vitkus/public_html/maven2</url>
+                <url>scp://classroom.cs.unc.edu/~vitkus/maven2</url>
             </repository>
     </repositories>
     <build>
