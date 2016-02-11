@@ -19,6 +19,8 @@ public class GradeWriter implements IGradeWriter {
 
     protected final AsynchronousFileChannel gradeFile;
     protected final String assignmentName;
+    
+    private static final String ENCODING = "UTF-8";
 
     public GradeWriter(String assignmentName, Path gradeFile) throws IOException, FileNotFoundException, InterruptedException, ExecutionException {
         if (!gradeFile.toFile().exists()) {
@@ -55,16 +57,16 @@ public class GradeWriter implements IGradeWriter {
             ByteBuffer buf;
             if (line.startsWith(data.getOnyen())) {
                 onyenSet = true;
-                buf = ByteBuffer.wrap(newLine.getBytes("UTF-16"));
+                buf = ByteBuffer.wrap(newLine.getBytes(ENCODING));
             } else {
                 line += "\r\n";
-                buf = ByteBuffer.wrap(line.getBytes("UTF-16"));
+                buf = ByteBuffer.wrap(line.getBytes(ENCODING));
             }
             ((AsynchronousFileChannel) lock.acquiredBy()).write(buf, loc);
             loc += buf.capacity();
         }
         if (!onyenSet) {
-            ByteBuffer buf = ByteBuffer.wrap(newLine.getBytes("UTF-16"));
+            ByteBuffer buf = ByteBuffer.wrap(newLine.getBytes(ENCODING));
             ((AsynchronousFileChannel) lock.acquiredBy()).write(buf, loc);
         }
         lock.release();
@@ -85,7 +87,7 @@ public class GradeWriter implements IGradeWriter {
         Future<FileLock> flock = gradeFile.lock();
         String header = assignmentName + "\tScores\t\t\t\r\nDisplay ID\tID\tLast Name\tFirst Name\tgrade\r\n\t\t\t\t\r\n";
         FileLock lock = flock.get();
-        ByteBuffer expectedHeader = ByteBuffer.wrap(header.getBytes("UTF-16"));
+        ByteBuffer expectedHeader = ByteBuffer.wrap(header.getBytes(ENCODING));
         ByteBuffer fileData = ByteBuffer.allocate(expectedHeader.capacity());
         ((AsynchronousFileChannel) lock.acquiredBy()).read(fileData, 0).get();
         if (!expectedHeader.equals(fileData)) {
