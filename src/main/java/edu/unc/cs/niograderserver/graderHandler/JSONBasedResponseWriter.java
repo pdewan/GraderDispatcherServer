@@ -32,7 +32,8 @@ public class JSONBasedResponseWriter extends ResponseWriter {
     }
 
     public JSONBasedResponseWriter(File json, File checkstyle, boolean stylized) throws FileNotFoundException, IOException {
-        if (json.exists()) {
+        System.out.println("Checking JSON file:" + json.getAbsolutePath());
+    	if (json.exists()) {
             IJSONReader reader = new JSONReader(json);
             response = stylized ? new StylizedSuccessPage() : new SuccessPage();
             String[][] grading = reader.getGrading();
@@ -47,6 +48,8 @@ public class JSONBasedResponseWriter extends ResponseWriter {
                 return;
             }
         }
+        System.out.println("JSON file does not exist:" + json.getName());
+
         response = new FailPage();
     }
 }

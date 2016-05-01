@@ -130,7 +130,7 @@ public class HTTPBasedGraderHandler extends Thread {
             GraderFutureHolder graderHolder = GraderPool.runGrader(setup.getCommandArgs());
             Future<String> grader = graderHolder.getFuture();
             runNumber = graderHolder.getNumber();
-
+            System.out.println ("Splitting output");
             // log grader program output
             Arrays.stream(grader.get().split("\n")).forEach((line) -> LOG.log(Level.INFO, "Grader_Program: {0}", line));
         } catch (ExecutionException e) {
@@ -340,7 +340,8 @@ public class HTTPBasedGraderHandler extends Thread {
     }
 
     private void sendResponse(String title) throws FileNotFoundException, IOException {
-        File jsonFile = submissionPath.resolve(Paths.get("Feedback Attachment(s)", "results.json")).toFile();
+        System.out.println ("Sending response with title:" + title);
+    	File jsonFile = submissionPath.resolve(Paths.get("Feedback Attachment(s)", "results.json")).toFile();
         File checkstyleFile = submissionPath.resolve(Paths.get("Feedback Attachment(s)", "checkstyle.txt")).toFile();
         try {
             IResponseWriter responseWriter = new JSONBasedResponseWriter(jsonFile, checkstyleFile);

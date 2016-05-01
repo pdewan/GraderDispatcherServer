@@ -17,6 +17,7 @@ public class CheckstyleNotesUtil {
     public static INoteData readCheckstyleNotes(Path checkstylePath) throws IOException {
         INoteData notes = new NoteData();
         if(Files.exists(checkstylePath)) {
+        	try {
             
             List<String> lines = Files.readAllLines(checkstylePath);
             lines.remove(0);
@@ -62,6 +63,10 @@ public class CheckstyleNotesUtil {
                 notes.addPart(data[3]);
                 notes.addNote(data[4]);
             }
+        	} catch (Exception e) {
+        		System.err.println ("Could not read checkstyle file:" + checkstylePath);
+        		e.printStackTrace();
+        	}
         }
         
         return notes;

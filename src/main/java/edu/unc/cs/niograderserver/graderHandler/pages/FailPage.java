@@ -67,6 +67,9 @@ public class FailPage extends HTMLFile implements IFailPage {
         headingRule.addStyle("height", "2px");
         body.addElement(headingRule);
         IParagraph p = new Paragraph();
+        Exception e = new Exception();
+        System.out.println ("Returning unavailable grading data");
+        e.printStackTrace();
         p.addContent(new Text("Grading data unavailable, please contact your professor or a TA."));
         body.addElement(p);
         return body;

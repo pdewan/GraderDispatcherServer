@@ -191,7 +191,8 @@ public class GraderPageGenerator implements IGraderPageGenerator {
     }
 
     private String submit(String assignment, String course, String onyen, Path fileLoc, String ip, String uid, String firstName, String lastName, String pid, String year, String season) {
-        String uuid = GradePageManager.add(GradePageManager.NOT_FOUND, ip, -1);
+        System.out.println ("Submitting assignment:");
+    	String uuid = GradePageManager.add(GradePageManager.NOT_FOUND, ip, -1);
         
         InputBasedGraderHandler grader = new InputBasedGraderHandler();
         grader.setAssignment(assignment);

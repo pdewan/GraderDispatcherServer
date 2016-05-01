@@ -16,6 +16,8 @@ public class GraderPool {
     private static final ExecutorService graderPool;
     private static AtomicInteger current;
     private static AtomicInteger total;
+    static int serverNumber = 0;
+    static int graderPoolSize;
 
     static {
         current = new AtomicInteger(0);
@@ -28,7 +30,11 @@ public class GraderPool {
             Logger.getLogger(GraderPool.class.getName()).log(Level.SEVERE, null, ex);
             graders = DEFAULT_GRADERS;
         }
+        graderPoolSize = graders;
         graderPool = Executors.newFixedThreadPool(graders);
+    }
+    protected static void setNextServerNumber() {
+    	serverNumber = (serverNumber + 1) % graderPoolSize;
     }
 
     public static int getPendingForRun(int run) {
@@ -36,10 +42,10 @@ public class GraderPool {
     }
 
     public static GraderFutureHolder runGrader(String[] args) throws IOException, InterruptedException {
-        Future<String> grader = graderPool.submit(new GraderCallable(args));
+        Future<String> grader = graderPool.submit(new GraderCallable(args, serverNumber));
         int number = total.incrementAndGet();
         GraderFutureHolder graderHolder = new GraderFutureHolder(grader, number - 1);
-
+        // why not use future.get? PD 
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -48,19 +54,23 @@ public class GraderPool {
                     if (grader.isDone()) {
                         current.incrementAndGet();
                         doContinue = false;
+                        System.out.println ("COMPLETED GRADING");
                         Logger.getLogger(GraderPool.class.getName()).log(Level.FINER, null, "Grading complete");
                     } else {
                         try {
                             Thread.sleep(100);
+//                            System.out.println ("polling for grader, should use notification");
                         } catch (InterruptedException ex) {
                             Logger.getLogger(GraderPool.class.getName()).log(Level.SEVERE, null, ex);
                             doContinue = false;
+                            System.out.println ("interrupted execution of polling thread");
+
                         }
                     }
                 } while (doContinue);
             }
         }).start();
-
+        
         return graderHolder;
     }
 
@@ -70,4 +80,15 @@ public class GraderPool {
 
     private GraderPool() {
     }
+//    public static void main (String[] args) {
+//    	graderPoolSize = 3;
+//    	System.out.println(serverNumber);
+//    	setNextServerNumber();
+//    	System.out.println(serverNumber);
+//    	setNextServerNumber();
+//    	System.out.println(serverNumber);
+//    	setNextServerNumber();
+//    	System.out.println(serverNumber);
+//    	setNextServerNumber();
+//    }
 }

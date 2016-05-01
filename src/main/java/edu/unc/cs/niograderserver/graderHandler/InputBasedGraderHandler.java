@@ -143,10 +143,12 @@ public class InputBasedGraderHandler {
                     doClear = false;
                 }
             }
+            System.out.println ("Submission manager no longer pending");
             endPendTime = System.currentTimeMillis();
             PendingSubmissionManger.addSubmission(uid, course, section, title);
             FileTreeManager.checkPurgeRoot();
             boolean success = readSubmission();
+            System.out.println ("Sucess result:" + success);
             if (success) {
                 // this is less readable but fails fast
                 if (!(onyen == null || uid == null || pid == null || firstName == null || lastName == null)) {
@@ -285,6 +287,7 @@ public class InputBasedGraderHandler {
 
     private IHTMLFile createResponse(String title) throws FileNotFoundException, IOException {
         try {
+        	System.out.println ("Creating response for title:" + title);
             IResponseWriter responseWriter = new JSONBasedResponseWriter(jsonPath.toFile(), checkstylePath.toFile(), true);
             responseWriter.setAssignmentName(title);
             return responseWriter.getResponse();
@@ -320,6 +323,7 @@ public class InputBasedGraderHandler {
 
     private boolean readSubmission() throws SQLException {
         try {
+        	System.out.println ("Reading submission");
             IConfigReader config = new ConfigReader("./config/config.properties");
             String username = config.getString("database.username").orElseThrow(IllegalArgumentException::new);
             String password = config.getString("database.password").orElseThrow(IllegalArgumentException::new);
