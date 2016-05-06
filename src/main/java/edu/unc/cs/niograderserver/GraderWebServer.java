@@ -27,9 +27,9 @@ import java.util.logging.XMLFormatter;
  *
  * @author Andrew Vitkus
  */
-public class GraderServer {
+public class GraderWebServer {
     
-    private static final Logger LOG = Logger.getLogger(GraderServer.class.getName());
+    private static final Logger LOG = Logger.getLogger(GraderWebServer.class.getName());
     
     private static final String DEFAULT_ROOT = "//";
 

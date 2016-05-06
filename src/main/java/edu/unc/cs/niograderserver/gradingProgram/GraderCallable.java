@@ -3,12 +3,13 @@
  */
 package edu.unc.cs.niograderserver.gradingProgram;
 
+import edu.unc.cs.dispatcherServer.AGraderServerManager;
 import edu.unc.cs.niograderserver.utils.ConfigReader;
 import edu.unc.cs.niograderserver.utils.IConfigReader;
-import gradingTools.client.ADriverClientLauncher;
-import gradingTools.client.DriverClientLauncher;
-import gradingTools.server.DriverServerLauncher;
-import gradingTools.server.DriverServerObject;
+import gradingTools.client.AGraderServerClientLauncher;
+import gradingTools.client.GraderServerClientLauncher;
+import gradingTools.server.GraderServerLauncher;
+import gradingTools.server.RemoteGraderServer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -35,7 +36,7 @@ public class GraderCallable implements Callable<String> {
     protected long lastServerCreationAttempt;
 	private final String[] args;
     int serverNumber = 0;
-    protected Map<Integer, DriverClientLauncher> graderServerToClient = new HashMap();
+    protected Map<Integer, GraderServerClientLauncher> graderServerToClient = new HashMap();
     protected Map<Integer, ProcessBuilder> graderServerToProcessBuilder = new HashMap();
     protected Map<Integer, BufferedReader> graderServerToOutput = new HashMap();
 
@@ -51,7 +52,8 @@ public class GraderCallable implements Callable<String> {
     public String call() throws Exception {
     	try {
 //       return forkGraderDriver();
-    	return useGraderServerOrDriver();
+//    	return useGraderServerOrDriver();
+    		return useRegisteredGraderServer();
     	} catch (Exception e) {
     		e.printStackTrace();
     		return null;
@@ -68,7 +70,7 @@ public class GraderCallable implements Callable<String> {
             while (aBufferedReader.ready()) {
             	String aNextLine = aBufferedReader.readLine();
                 output.append(aNextLine).append("\n");
-                if (DriverServerObject.END_DRIVE.equals(aNextLine))
+                if (RemoteGraderServer.END_DRIVE.equals(aNextLine))
                 	break;
             }
 //        }
@@ -81,7 +83,7 @@ public class GraderCallable implements Callable<String> {
     	
     }
     protected String useGraderServerOrDriver() throws Exception{
-    	DriverClientLauncher aClientLauncher = getOrCreateConnectedGraderClient(serverNumber);
+    	GraderServerClientLauncher aClientLauncher = getOrCreateConnectedGraderClient(serverNumber);
     	if (aClientLauncher == null) {
     		return forkGraderDriver();
     	}
@@ -95,25 +97,48 @@ public class GraderCallable implements Callable<String> {
     		return ((Exception) retVal).getMessage();
     	} else {
     		
-    		return getOutput(serverNumber);
+//    		return getOutput(serverNumber);
+    		return "";
     	}
     }
-    protected DriverClientLauncher getOrCreateConnectedGraderClient(int aServerNumber) throws Exception {
-    	DriverClientLauncher aDriverClientLauncher = graderServerToClient.get(aServerNumber);
+    /**
+     * @return
+     * @throws Exception
+     */
+    protected String useRegisteredGraderServer() throws Exception{
+    	RemoteGraderServer aDriverServerObject = AGraderServerManager.getDispatcherManager().getGraderServerObject(null);
+    	if (aDriverServerObject == null) {
+    		System.out.println ("could not find driver server object, forking grader server");
+    		return forkGraderDriver();
+    	}
+		System.out.println ("Calling drive in grader server with args:" + Arrays.toString(args));
+    	Object retVal = aDriverServerObject.drive(args);
+    	if (retVal != null) {
+    		System.err.println("Could not successfully call remote method in server");
+    		((Exception)retVal).printStackTrace();
+    		return ((Exception) retVal).getMessage();
+    	} else {
+    		
+    		return "";
+    	}
+    	
+    }
+    protected GraderServerClientLauncher getOrCreateConnectedGraderClient(int aServerNumber) throws Exception {
+    	GraderServerClientLauncher aDriverClientLauncher = graderServerToClient.get(aServerNumber);
     	if (aDriverClientLauncher == null) {
     		System.out.println ("creating first client for" + aServerNumber);
     		aDriverClientLauncher = createGraderClient(aServerNumber);
     		
     	}
     	
-    	if (!aDriverClientLauncher.getMainPort().isConnected(DriverServerLauncher.DRIVER_SERVER_NAME)) {
+    	if (!aDriverClientLauncher.getMainPort().isConnected(GraderServerLauncher.DRIVER_SERVER_NAME)) {
     		if (lastServerCreationAttempt != 0 && (System.currentTimeMillis() - lastServerCreationAttempt) < MIN_TIME_BETWEEN_ATTEMPTS ) {
         		System.out.println ("not forking server as last attempt was made recently");
         		return null;
         	}
     		forkGraderServer(aServerNumber);
 		}
-    	if (!aDriverClientLauncher.getMainPort().isConnected(DriverServerLauncher.DRIVER_SERVER_NAME)) {
+    	if (!aDriverClientLauncher.getMainPort().isConnected(GraderServerLauncher.DRIVER_SERVER_NAME)) {
     		return null;
     	}
     	
@@ -122,13 +147,13 @@ public class GraderCallable implements Callable<String> {
     }
     
     
-    protected DriverClientLauncher createGraderClient(int aServerNumber) throws Exception {
-    	DriverClientLauncher aDriverClientLauncher = ADriverClientLauncher.createAndLaunch(GRADER_SERVER_HOST_NAME, aServerNumber);
+    protected GraderServerClientLauncher createGraderClient(int aServerNumber) throws Exception {
+    	GraderServerClientLauncher aDriverClientLauncher = AGraderServerClientLauncher.createAndLaunch(GRADER_SERVER_HOST_NAME, aServerNumber);
     	System.out.println ("Created testing client launcher");
 //    	Thread.sleep(1000); // just wait a bit for connection
-    	if (aDriverClientLauncher == null || !aDriverClientLauncher.getMainPort().isConnected(DriverServerLauncher.DRIVER_SERVER_NAME)) {
+    	if (aDriverClientLauncher == null || !aDriverClientLauncher.getMainPort().isConnected(GraderServerLauncher.DRIVER_SERVER_NAME)) {
     	forkGraderServer(aServerNumber); 
-    	 aDriverClientLauncher = ADriverClientLauncher.createAndLaunch(GRADER_SERVER_HOST_NAME, aServerNumber);
+    	 aDriverClientLauncher = AGraderServerClientLauncher.createAndLaunch(GRADER_SERVER_HOST_NAME, aServerNumber);
     	} else {
     		System.out.println ("Connected to existing grader server");
     	}
@@ -257,7 +282,7 @@ public class GraderCallable implements Callable<String> {
 
                 output.append(aNextLine).append("\n");
                 System.out.println ("Got output line:" + aNextLine);
-                if (DriverServerLauncher.DRIVER_SERVER_START_MESSAGE.equals(aNextLine)) {
+                if (GraderServerLauncher.DRIVER_SERVER_START_MESSAGE.equals(aNextLine)) {
                 	break;
                 }
             }

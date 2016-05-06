@@ -1,12 +1,16 @@
 package edu.unc.cs.dispatcherServer;
 
-import gradingTools.server.DriverServerObject;
+import gradingTools.server.RemoteGraderServer;
 
 public class ADispatcherRegistry implements DispatcherRegistry {
 
+
 	@Override
-	public void registerDriverServer(DriverServerObject aServerObject) {
-		aServerObject.drive(new String[]{});
+	public void registerDriverServer(RemoteGraderServer aServerObject,
+			GraderServerDescription anAssignmentDescription) {
+		
+		AGraderServerManager.getDispatcherManager().
+		register(new AGraderServerRegistration(aServerObject, anAssignmentDescription));
 	}
 
 	

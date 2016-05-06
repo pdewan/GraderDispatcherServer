@@ -1,6 +1,9 @@
 package edu.unc.cs.dispatcherServer;
 
-import gradingTools.server.DriverServerObject;
+import java.io.IOException;
+
+import edu.unc.cs.niograderserver.GraderWebServer;
+import gradingTools.server.RemoteGraderServer;
 import inputport.ConnectionListener;
 import inputport.InputPort;
 import inputport.rpc.duplex.AnAbstractDuplexRPCServerPortLauncher;
@@ -47,5 +50,11 @@ public class ADispatcherServerLauncher extends AnAbstractDuplexRPCServerPortLaun
 
 
 		(new ADispatcherServerLauncher(DISPATCHER_SERVER_NAME, DISPATCHER_SERVER_ID)).launch();
+		try {
+			GraderWebServer.main(new String[]{});
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
