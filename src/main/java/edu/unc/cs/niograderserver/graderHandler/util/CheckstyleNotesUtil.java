@@ -16,6 +16,8 @@ public class CheckstyleNotesUtil {
     
     public static INoteData readCheckstyleNotes(Path checkstylePath) throws IOException {
         INoteData notes = new NoteData();
+      System.out.println ("Reading but not writing checkstle notes:" + checkstylePath);
+
         if(Files.exists(checkstylePath)) {
         	try {
             
@@ -78,9 +80,10 @@ public class CheckstyleNotesUtil {
         line = line.substring(srcIndex + 3 + FILE_SEPARATOR.length()*2);
         String[] split1 = line.split(" ", 2);
         String[] split2 = split1[0].split(":");
-        System.out.println(line);
-        System.out.println(Arrays.toString(split1));
-        System.out.println(Arrays.toString(split2));
+//        System.out.println ("Not writing parts of:" + line);
+//        System.out.println(line);
+//        System.out.println(Arrays.toString(split1));
+//        System.out.println(Arrays.toString(split2));
         
         String[] parts = new String[5];
         
@@ -94,7 +97,7 @@ public class CheckstyleNotesUtil {
             parts[1] = "0";
         }
         parts[4] = split1[1];
-        System.out.println(Arrays.toString(parts));
+//        System.out.println(Arrays.toString(parts));
         
         return parts;
     }

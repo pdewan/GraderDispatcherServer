@@ -24,6 +24,7 @@ public class GradeWriter implements IGradeWriter {
 
     public GradeWriter(String assignmentName, Path gradeFile) throws IOException, FileNotFoundException, InterruptedException, ExecutionException {
         if (!gradeFile.toFile().exists()) {
+        	System.out.println ("Creating file:" + gradeFile.toFile().getAbsolutePath());
             gradeFile.toFile().createNewFile();
         }
         this.gradeFile = AsynchronousFileChannel.open(gradeFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.READ);
@@ -37,8 +38,10 @@ public class GradeWriter implements IGradeWriter {
 
     @Override
     public void write(IGradingData data) throws FileNotFoundException, IOException, InterruptedException, ExecutionException {
-        Future<FileLock> flock = gradeFile.lock();
+    	Future<FileLock> flock = gradeFile.lock();
         String newLine = formatData(data);
+        System.out.println ("Writing to file:" +newLine);
+
         FileLock lock = flock.get();
         /*
          * Read the file in then build an array of the lines.
@@ -84,7 +87,8 @@ public class GradeWriter implements IGradeWriter {
     }
 
     protected void initializeFile() throws FileNotFoundException, IOException, InterruptedException, ExecutionException {
-        Future<FileLock> flock = gradeFile.lock();
+        System.out.println ("Initializing file");
+    	Future<FileLock> flock = gradeFile.lock();
         String header = assignmentName + "\tScores\t\t\t\r\nDisplay ID\tID\tLast Name\tFirst Name\tgrade\r\n\t\t\t\t\r\n";
         FileLock lock = flock.get();
         ByteBuffer expectedHeader = ByteBuffer.wrap(header.getBytes(ENCODING));

@@ -118,7 +118,7 @@ public class GraderCallable implements Callable<String> {
     		((Exception)retVal).printStackTrace();
     		return ((Exception) retVal).getMessage();
     	} else {
-    		
+    		System.out.println ("Finished calling grader server");
     		return "";
     	}
     	

@@ -12,6 +12,7 @@ import edu.unc.cs.niograderserver.utils.IConfigReader;
 import edu.unc.cs.niograderserver.utils.URLConnectionHelper;
 import edu.unc.cs.niograderserver.utils.ZipReader;
 import edu.unc.cs.niograderserver.gradingProgram.GraderFutureHolder;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -31,6 +32,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocket;
 
@@ -185,7 +187,9 @@ public class JavaBasedGraderHandler extends Thread {
             assignmentRoot = assignmentRoot.resolve(Paths.get(Integer.toString(year), courseParts[0].replace(" ", ""), courseParts[1], assignmentName));
             submissionPath = assignmentRoot.resolve(last + ", " + first + " (" + onyen + ")");
             Path zipPath = submissionPath.resolve(Paths.get("Submission attachment(s)", assignmentName + ".zip"));
-
+            System.out.println ("Assignment root:" + assignmentRoot);
+            System.out.println ("Submission path:" + submissionPath);
+            System.out.println ("Zip path:" + zipPath);
             try {
                 if (zipPath.toFile().exists() && underSubmitLimit()) { // write backup of old zip if allowed
                     Path zipBackupPath = submissionPath.resolve(Paths.get("Submission attachment(s)", assignmentName + ".zip.bak"));
@@ -292,5 +296,9 @@ public class JavaBasedGraderHandler extends Thread {
             int subLimit = dr.readSubmissionLimitForAssignment(assignmentCatalogID); // max limit of saved submissions
             return subLimit == 0 || subCount < subLimit;
         }
+    }
+    static {
+    	System.out.println ("Turning off logging in:" + "JavabasedGrade");
+        LOG.setLevel(Level.OFF);
     }
 }

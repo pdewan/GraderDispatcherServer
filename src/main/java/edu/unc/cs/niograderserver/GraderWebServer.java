@@ -14,6 +14,7 @@ import edu.unc.cs.niograderserver.pages.error.Error404PageGenerator;
 import edu.unc.cs.niograderserver.utils.ConfigReader;
 import edu.unc.cs.niograderserver.utils.IConfigReader;
 import edu.unc.cs.niograderserver.utils.SSLDataGenerator;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -120,5 +121,9 @@ public class GraderWebServer {
                 }
             }
         }.start();
+    }
+    static {
+    	System.out.println ("Turning off logging in:" + "GraderWebServer");
+        LOG.setLevel(Level.OFF);
     }
 }

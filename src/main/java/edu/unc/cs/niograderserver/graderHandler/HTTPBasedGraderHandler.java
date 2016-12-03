@@ -19,6 +19,7 @@ import edu.unc.cs.niograderserver.utils.IConfigReader;
 import edu.unc.cs.niograderserver.utils.URLConnectionHelper;
 import edu.unc.cs.niograderserver.utils.ZipReader;
 import edu.unc.cs.niograderserver.gradingProgram.GraderFutureHolder;
+
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -40,6 +41,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocket;
 
@@ -83,16 +85,23 @@ public class HTTPBasedGraderHandler extends Thread {
                 replyBoolean(success);
                 if (success) {
                     try {
-                        grade();
-                    } catch (InterruptedException e1) {
+                    	if (underSubmitLimit()) {
+                           grade();
+                    	} else {
+                        	System.out.println ("Too many submissions, not grading");
+
+                    	}
+                    } catch (InterruptedException | SQLException e1) {
                         LOG.log(Level.FINER, null, e1);
                     }
                     sendResponse(title);
                     try {
                         try {
                             // write to grades.csv of old zip if allowed
-                            if (underSubmitLimit()) {
+                            if (underSubmitLimit() && writeToGradeFile()) {
                                 saveToGradesFile();
+                            } else {
+                            	System.out.println ("Not writing to grade file");
                             }
                         } catch (FileNotFoundException | InterruptedException | ExecutionException ex) {
                             LOG.log(Level.FINER, null, ex);
@@ -178,7 +187,8 @@ public class HTTPBasedGraderHandler extends Thread {
     }
 
     private void postToDatabase() throws SQLException, FileNotFoundException, IOException {
-        IConfigReader config = new ConfigReader("./config/config.properties");
+        System.out.println ("Post to database started");
+    	IConfigReader config = new ConfigReader("./config/config.properties");
         String username = config.getString("database.username").orElseThrow(IllegalArgumentException::new);
         String password = config.getString("database.password").orElseThrow(IllegalArgumentException::new);
         String url = config.getString("database.url").orElseThrow(IllegalArgumentException::new);
@@ -226,6 +236,8 @@ public class HTTPBasedGraderHandler extends Thread {
                 dw.writeComments(reader.getComments(), resultID);
             }
         }
+        System.out.println ("Post to database ended");
+
     }
 
     private boolean readSubmission() {
@@ -337,6 +349,7 @@ public class HTTPBasedGraderHandler extends Thread {
 
         IGradeWriter gradeWriter = new CSVGradeWriter(assignmentName, assignmentRoot.resolve("grades.csv"));
         gradeWriter.write(gradingData);
+        System.out.println ("Finished writingt to grade file");
     }
 
     private void sendResponse(String title) throws FileNotFoundException, IOException {
@@ -345,12 +358,19 @@ public class HTTPBasedGraderHandler extends Thread {
         File checkstyleFile = submissionPath.resolve(Paths.get("Feedback Attachment(s)", "checkstyle.txt")).toFile();
         try {
             IResponseWriter responseWriter = new JSONBasedResponseWriter(jsonFile, checkstyleFile);
+            System.out.println ("Finished JSON REesponse");
             responseWriter.setAssignmentName(title);
             replyUTF(responseWriter.getResponseText());
+            System.out.println ("Finished Replying");
+
         } catch (FileNotFoundException e) {
             LOG.log(Level.WARNING, "Unable to access JSON file at: {0}", jsonFile.getAbsolutePath());
             throw e;
         }
+    }
+    
+    protected boolean writeToGradeFile() {
+    	return false;
     }
 
     private boolean underSubmitLimit() throws IOException, SQLException {
@@ -379,4 +399,9 @@ public class HTTPBasedGraderHandler extends Thread {
             return subLimit == 0 || subCount < subLimit;
         }
     }
+
+static {
+	System.out.println ("Turning off logging in:" + "HTTPbasedGrade");
+    LOG.setLevel(Level.OFF);
+}
 }

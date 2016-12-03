@@ -19,7 +19,9 @@ public class DatabaseReader implements IDatabaseReader {
     }
 
     public DatabaseReader(String username, String password, String server) throws SQLException {
-        connect(username, password, server);
+    	System.out.println ("Turning off logging in:" + this);
+        LOG.setLevel(Level.OFF);
+    	connect(username, password, server);
     }
 
     @Override

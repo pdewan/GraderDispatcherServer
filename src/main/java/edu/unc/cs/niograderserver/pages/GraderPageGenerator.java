@@ -210,13 +210,15 @@ public class GraderPageGenerator implements IGraderPageGenerator {
         GradePageManager.update(uuid, GradePageManager.IN_PROGRESS_PAGE_GENERATOR);
         GradePageManager.refresh(uuid);
 
-        //System.out.println("grade");
+        System.out.println("starting thread");
         new Thread() {
             @Override
             public void run() {
                 try {
                     GradePageManager.update(uuid, grader.process());
+                    System.out.println ("Refreshing");
                     GradePageManager.refresh(uuid);
+                    System.out.println ("Finished thread");
                 } catch (GradingFailureException ex) {
                     LOG.log(Level.SEVERE, null, ex);
                     throw new ResponseStatusNotice(HttpStatus.SC_INTERNAL_SERVER_ERROR);

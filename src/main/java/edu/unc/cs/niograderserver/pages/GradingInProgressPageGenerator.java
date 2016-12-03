@@ -40,6 +40,7 @@ public class GradingInProgressPageGenerator implements IGradingInProgressPageGen
     private static final Logger LOG = Logger.getLogger(GradingInProgressPageGenerator.class.getName());
     private static final String SERVER_ROOT_ADDRESS;
     private static final String PAGE_ADDRESS = "grading.php";
+    protected static  final boolean CHECK_PENDING = false;
 
     private final String[] methods = new String[]{"GET", "POST"};
 
@@ -76,6 +77,10 @@ public class GradingInProgressPageGenerator implements IGradingInProgressPageGen
 
         IHTMLFile html = buildHtmlFile(uuid, number);
         return html.getHTML();
+    }
+    
+    protected boolean checkPending() {
+    	return false;
     }
 
     private IHTMLFile buildHtmlFile(String uuid, int number) {

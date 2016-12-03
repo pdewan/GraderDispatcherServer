@@ -18,6 +18,7 @@ import edu.unc.cs.niograderserver.graderHandler.util.PendingSubmissionManger;
 import edu.unc.cs.htmlBuilder.IHTMLFile;
 import edu.unc.cs.httpserver.pages.IPageGenerator;
 import edu.unc.cs.httpserver.util.ResponseStatusNotice;
+
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -29,7 +30,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+
 import static java.nio.file.StandardOpenOption.APPEND;
+
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Optional;
@@ -38,6 +41,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+
 import org.apache.commons.fileupload.FileItem;
 
 public class InputBasedGraderHandler {
@@ -63,10 +67,14 @@ public class InputBasedGraderHandler {
     private Path userPath;
     
     private int runNumber;
+    
+    protected static final boolean PURGE_SUBMISSION = true;
 
     public InputBasedGraderHandler() {
         assignmentRoot = Paths.get("graderProgram", "data");
         runNumber = -1;
+        System.out.println ("Turning off logging in:" + this);
+        LOG.setLevel(Level.OFF);
     }
 
     public void setAssignment(String name) {
@@ -128,22 +136,38 @@ public class InputBasedGraderHandler {
         this.season = season;
     }
     
+    protected boolean purgeSubmission() {
+    	return PURGE_SUBMISSION;
+    }
+    
     private long startTime;
     private long endPendTime;
+    
+    public static final int MAX_TRIES = 10;
 
     public IPageGenerator process() throws GradingFailureException {
         startTime = System.currentTimeMillis();
-        boolean doClear = true;
+//        boolean doClear = true;
+        // why was clearinng true
+        boolean doClear = false;
+        System.out.println ("Processing submission");
+        
         try {  
-            while (PendingSubmissionManger.isPending(uid, course, section, title)) {
+        	int aNumTries = 0;
+            while (aNumTries < MAX_TRIES && PendingSubmissionManger.isPending(uid, course, section, title)) {
                 try {
+                	System.out.println("Pending submission");
                     Thread.sleep(100);
+                    aNumTries ++;
                 } catch (InterruptedException ex) {
                     Logger.getLogger(InputBasedGraderHandler.class.getName()).log(Level.SEVERE, null, ex);
                     doClear = false;
                 }
             }
-            System.out.println ("Submission manager no longer pending");
+            if (aNumTries == MAX_TRIES) {
+            	System.out.println ("Given up on waiting for pending");
+            }
+            System.out.println ("Submission manager no longer pending or given up on pendng");
             endPendTime = System.currentTimeMillis();
             PendingSubmissionManger.addSubmission(uid, course, section, title);
             FileTreeManager.checkPurgeRoot();
@@ -158,6 +182,7 @@ public class InputBasedGraderHandler {
                 Path gradesFile = assignmentRoot.resolve("grades.csv");
                 System.out.println(gradesFile.toString());
                 if (!gradesFile.toFile().exists()) {
+                	System.out.println ("Creating grades file");
                     int parenStart = title.indexOf('(');
                     int parenEnd = title.indexOf(')');
                     String assignmentName = title.substring(parenStart + 1, parenEnd);
@@ -168,6 +193,8 @@ public class InputBasedGraderHandler {
                             .append(onyen).append(',').append(onyen).append(',').append(lastName).append(',').append(firstName).append(",0.0\n");
                     Files.write(gradesFile, fileContents.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
                 } else {
+                	System.out.println ("Checking onyen in grades file");
+
                     boolean addOnyen = true;
                     StringBuilder toWrite = new StringBuilder((int)Files.size(gradesFile));
                     for(String line : Files.readAllLines(gradesFile)) {
@@ -178,6 +205,8 @@ public class InputBasedGraderHandler {
                         toWrite.append(line).append("\n");
                     }
                     if (addOnyen) {
+                    	System.out.println ("Adding onyen to Creating grades file");
+
                         toWrite.append(onyen).append(',').append(onyen).append(',').append(lastName).append(',').append(firstName).append(",0.0\n");
                     }
                     Files.write(gradesFile, toWrite.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
@@ -193,7 +222,11 @@ public class InputBasedGraderHandler {
                 if (!submissionType.equals("application/json")) {
                     try {
                         System.out.println("Grade?");
+                        if (underSubmitLimit()) {
                         grade();
+                        } else {
+                        	System.out.println ("Did not grade, too many submissions");
+                        }
                         System.out.println("Grade.");
                         jsonPath = userPath.resolve(Paths.get("Feedback Attachment(s)", "results.json"));
                         checkstylePath = userPath.resolve(Paths.get("Feedback Attachment(s)", "checkstyle.txt"));
@@ -213,17 +246,22 @@ public class InputBasedGraderHandler {
                             .setResultsFile(jsonPath);
                     try {
                         // write to grades.csv of old zip if allowed
-                        if (underSubmitLimit()) {
+                        if (underSubmitLimit() && writeToGradeFile()) {
+                        	
                             gradeWriter.saveToGradesFile();
+                        } else {
+                        	System.out.println ("Did not write to grade file in INputBasedGenerator");
                         }
                     } catch (FileNotFoundException | InterruptedException | ExecutionException ex) {
                         LOG.log(Level.FINER, null, ex);
                     }
                     gradeWriter.postToDatabase();
+                    System.out.println ("Posted to database");
                 } catch (SQLException e) {
                     LOG.log(Level.FINER, null, e);
                 }
                 final IHTMLFile gradingResult = createResponse(title);
+                System.out.println ("Finished response");
                 IPageGenerator resultGenerator = new IPageGenerator() {
                     private final String html = gradingResult.getHTML();
                     
@@ -237,7 +275,7 @@ public class InputBasedGraderHandler {
                         return new String[]{"GET"};
                     }
                 };
-                
+                System.out.println ("Returning result");
                 return resultGenerator;
             } else {
                 GradePageManager.refresh(pageUUID);
@@ -262,6 +300,8 @@ public class InputBasedGraderHandler {
         } finally { 
             if (doClear) {
                 PendingSubmissionManger.removeSubmission(uid, course, section, title);
+            } else {
+            	System.out.println("Not removing submission for:" + uid);
             }
         }
     }
@@ -289,7 +329,11 @@ public class InputBasedGraderHandler {
         try {
         	System.out.println ("Creating response for title:" + title);
             IResponseWriter responseWriter = new JSONBasedResponseWriter(jsonPath.toFile(), checkstylePath.toFile(), true);
+        	System.out.println ("Got reponse from JSON Based Response Writer");
+
             responseWriter.setAssignmentName(title);
+            System.out.println("Finished creating response");
+
             return responseWriter.getResponse();
         } catch (FileNotFoundException e) {
             LOG.log(Level.WARNING, "Unable to access JSON file at: {0}", jsonPath);
@@ -351,7 +395,10 @@ public class InputBasedGraderHandler {
             userPath = assignmentRoot.resolve(lastName + ", " + firstName + " (" + onyen + ")");
             String[] fileSplit = submission.getFileName().toString().split("\\.", 2);
             submissionPath = userPath.resolve(Paths.get("Submission attachment(s)")).resolve(title + (fileSplit.length > 1 ? "." + fileSplit[1] : ""));
+            System.out.println ("Assignment root:" + assignmentRoot);
+            System.out.println ("user path:" + userPath);
 
+            System.out.println ("Submission path:" + submissionPath);
             try {
                 if (submissionPath.toFile().exists() && underSubmitLimit()) { // write backup of old zip if allowed
                     Path backupPath = userPath.resolve(Paths.get("Submission attachment(s)", submissionPath.getFileName() + ".bak"));
@@ -365,7 +412,13 @@ public class InputBasedGraderHandler {
                 LOG.log(Level.FINER, null, e);
             }
 
-            FileTreeManager.purgeSubmission(assignmentRoot);
+//            FileTreeManager.purgeSubmission(assignmentRoot);
+//            System.out.println ("Asking file tree manager to purge:" + userPath);
+            System.out.println ("purging " + userPath + " as cannot overwrite zip file");
+            if (purgeSubmission()) {
+            FileTreeManager.purgeSubmission(userPath);
+            }
+
 
             Files.createDirectories(submissionPath);
 
@@ -376,6 +429,9 @@ public class InputBasedGraderHandler {
             e.printStackTrace();
             return false;
         }
+    }
+    protected boolean writeToGradeFile() {
+    	return false;
     }
 
     private boolean underSubmitLimit() throws IOException, SQLException {

@@ -49,9 +49,12 @@ public class GraderSetup implements IGraderSetup {
             Files.createFile(Paths.get("graderProgram", ".gradersettings"));
         }
         if (!Files.exists(root)) {
+        	System.out.println("Creating root:" + root);
+
             Files.createDirectories(root);
         }
         if (!Files.exists(root.resolve("grades.csv"))) {
+        	System.out.println("Creating file:" + "grades.csv");
             Files.createFile(root.resolve("grades.csv"));
         }
         

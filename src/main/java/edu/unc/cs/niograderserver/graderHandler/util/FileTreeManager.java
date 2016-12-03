@@ -23,21 +23,30 @@ public class FileTreeManager {
     private static final Path root = Paths.get("graderProgram", "data");
 
     public static void purgeSubmission(Path submission) throws IOException {
+    	System.out.println ("Purging submission:" + submission);
+
         purge(submission);
     }
 
     public static void checkPurgeRoot() throws IOException {
         if (doPurgeRoot()) {
+        	System.out.println ("Purging root");
             purge(root);
         }
     }
+    
+    protected final static boolean PURGE_ENABLED = false;
 
     private static boolean doPurgeRoot() {
+    	System.out.println ("Checking Purging root");
+    	if (!PURGE_ENABLED)
+    		return false;
         int year = Calendar.getInstance().get(Calendar.YEAR);
         return root.resolve(Integer.toString(year - 1)).toFile().exists();
     }
 
     private static void purge(Path p) throws IOException {
+//    	System.out.println ("Purging path:" + p);
         if (!p.toFile().exists()) {
             return;
         }
@@ -45,6 +54,7 @@ public class FileTreeManager {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 if (!file.toFile().getName().endsWith(".bak") && !file.toFile().getName().equals("grades.csv")) {
+//                	System.out.println ("deleting file:" + file);
                     Files.delete(file);
                 }
                 return FileVisitResult.CONTINUE;
@@ -54,6 +64,8 @@ public class FileTreeManager {
             public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
                 if (e == null) {
                     try {
+                    	System.out.println ("deleting dir:" + dir);
+
                         Files.delete(dir);
                     } catch (IOException ex) {
                         if (!(ex instanceof DirectoryNotEmptyException || ex instanceof FileNotFoundException)) {
