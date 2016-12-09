@@ -299,6 +299,6 @@ public class JavaBasedGraderHandler extends Thread {
     }
     static {
     	System.out.println ("Turning off logging in:" + "JavabasedGrade");
-        LOG.setLevel(Level.OFF);
+        LOG.setLevel(Level.INFO);
     }
 }

@@ -20,7 +20,7 @@ public class DatabaseReader implements IDatabaseReader {
 
     public DatabaseReader(String username, String password, String server) throws SQLException {
     	System.out.println ("Turning off logging in:" + this);
-        LOG.setLevel(Level.OFF);
+        LOG.setLevel(Level.INFO);
     	connect(username, password, server);
     }
 

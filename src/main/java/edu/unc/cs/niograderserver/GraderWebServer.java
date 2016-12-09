@@ -124,6 +124,6 @@ public class GraderWebServer {
     }
     static {
     	System.out.println ("Turning off logging in:" + "GraderWebServer");
-        LOG.setLevel(Level.OFF);
+        LOG.setLevel(Level.INFO);
     }
 }

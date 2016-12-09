@@ -402,6 +402,6 @@ public class HTTPBasedGraderHandler extends Thread {
 
 static {
 	System.out.println ("Turning off logging in:" + "HTTPbasedGrade");
-    LOG.setLevel(Level.OFF);
+    LOG.setLevel(Level.INFO);
 }
 }

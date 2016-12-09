@@ -23,7 +23,7 @@ public class DatabaseWriter implements IDatabaseWriter {
 
     public DatabaseWriter() {
     	System.out.println ("Turning off logging in:" + this);
-        LOG.setLevel(Level.OFF);
+        LOG.setLevel(Level.INFO);
     }
 
     public DatabaseWriter(String username, String password, String server) throws SQLException {

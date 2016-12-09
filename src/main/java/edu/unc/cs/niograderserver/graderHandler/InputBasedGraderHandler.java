@@ -74,7 +74,7 @@ public class InputBasedGraderHandler {
         assignmentRoot = Paths.get("graderProgram", "data");
         runNumber = -1;
         System.out.println ("Turning off logging in:" + this);
-        LOG.setLevel(Level.OFF);
+        LOG.setLevel(Level.INFO);
     }
 
     public void setAssignment(String name) {
