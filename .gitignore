@@ -1,3 +1,6 @@
+*.class
 /target/
 /config/
 /keystore.jks
+*/bin/**
+bin/**
