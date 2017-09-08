@@ -18,6 +18,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -53,6 +54,7 @@ public class GraderCallable implements Callable<String> {
     	try {
 //       return forkGraderDriver();
 //    	return useGraderServerOrDriver();
+    		System.out.println("Received grading request at:" + new Date(System.currentTimeMillis()));
     		return useRegisteredGraderServer();
     	} catch (Exception e) {
     		e.printStackTrace();
