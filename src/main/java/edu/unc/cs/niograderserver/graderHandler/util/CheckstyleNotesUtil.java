@@ -6,6 +6,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
+import util.trace.Tracer;
+
 /**
  *
  * @author Andrew Vitkus
@@ -16,7 +18,7 @@ public class CheckstyleNotesUtil {
     
     public static INoteData readCheckstyleNotes(Path checkstylePath) throws IOException {
         INoteData notes = new NoteData();
-      System.out.println ("Reading but not writing checkstle notes:" + checkstylePath);
+        Tracer.info(CheckstyleNotesUtil.class, "Reading but not writing checkstle notes:" + checkstylePath);
 
         if(Files.exists(checkstylePath)) {
         	try {
@@ -66,7 +68,7 @@ public class CheckstyleNotesUtil {
                 notes.addNote(data[4]);
             }
         	} catch (Exception e) {
-        		System.err.println ("Could not read checkstyle file:" + checkstylePath);
+        		Tracer.info(CheckstyleNotesUtil.class, "Could not read checkstyle file:" + checkstylePath);
         		e.printStackTrace();
         	}
         }

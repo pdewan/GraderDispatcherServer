@@ -1,5 +1,7 @@
 package edu.unc.cs.niograderserver.graderHandler.pages;
 
+import util.trace.Traceable;
+import util.trace.Tracer;
 import edu.unc.cs.htmlBuilder.HTMLFile;
 import edu.unc.cs.htmlBuilder.body.Body;
 import edu.unc.cs.htmlBuilder.body.Header;
@@ -68,7 +70,7 @@ public class FailPage extends HTMLFile implements IFailPage {
         body.addElement(headingRule);
         IParagraph p = new Paragraph();
         Exception e = new Exception();
-        System.out.println ("Returning unavailable grading data");
+        Tracer.info(this, "Returning unavailable grading data");
         e.printStackTrace();
         p.addContent(new Text("Grading data unavailable, please contact your professor or a TA."));
         body.addElement(p);

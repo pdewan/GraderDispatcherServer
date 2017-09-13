@@ -27,5 +27,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/RemoteGraderClient"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/GraderDispatcherClient"/>
 	<classpathentry kind="lib" path="D:/dewan_backup/Java/lib/HTMLBuilder-1.0.jar"/>
+	<classpathentry kind="lib" path="D:/dewan_backup/Java/lib/util.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

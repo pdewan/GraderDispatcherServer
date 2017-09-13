@@ -11,6 +11,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import util.trace.Tracer;
+
 /**
  *
  * @author Andrew
@@ -24,7 +26,7 @@ public class GradeWriter implements IGradeWriter {
 
     public GradeWriter(String assignmentName, Path gradeFile) throws IOException, FileNotFoundException, InterruptedException, ExecutionException {
         if (!gradeFile.toFile().exists()) {
-        	System.out.println ("Creating file:" + gradeFile.toFile().getAbsolutePath());
+        	Tracer.info(this, "Creating file:" + gradeFile.toFile().getAbsolutePath());
             gradeFile.toFile().createNewFile();
         }
         this.gradeFile = AsynchronousFileChannel.open(gradeFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.READ);
@@ -40,7 +42,7 @@ public class GradeWriter implements IGradeWriter {
     public void write(IGradingData data) throws FileNotFoundException, IOException, InterruptedException, ExecutionException {
     	Future<FileLock> flock = gradeFile.lock();
         String newLine = formatData(data);
-        System.out.println ("Writing to file:" +newLine);
+        Tracer.info (this, "Writing to file:" +newLine);
 
         FileLock lock = flock.get();
         /*

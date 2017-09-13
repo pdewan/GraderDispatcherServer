@@ -10,6 +10,8 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import util.trace.Tracer;
+
 public class DatabaseReader implements IDatabaseReader {
     private static final Logger LOG = Logger.getLogger(DatabaseReader.class.getName());
 
@@ -19,7 +21,7 @@ public class DatabaseReader implements IDatabaseReader {
     }
 
     public DatabaseReader(String username, String password, String server) throws SQLException {
-    	System.out.println ("Turning off logging in:" + this);
+    	Tracer.info(this, "Turning off logging in:" + this);
         LOG.setLevel(Level.INFO);
     	connect(username, password, server);
     }

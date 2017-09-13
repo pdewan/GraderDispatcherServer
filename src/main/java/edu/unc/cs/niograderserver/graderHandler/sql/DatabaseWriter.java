@@ -10,6 +10,8 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import util.trace.Tracer;
+
 /**
  * @author Andrew Vitkus
  *
@@ -22,7 +24,7 @@ public class DatabaseWriter implements IDatabaseWriter {
     private IDatabaseReader reader;
 
     public DatabaseWriter() {
-    	System.out.println ("Turning off logging in:" + this);
+    	Tracer.info(this, "Turning off logging in:" + this);
         LOG.setLevel(Level.INFO);
     }
 

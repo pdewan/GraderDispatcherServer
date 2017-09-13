@@ -7,16 +7,22 @@ import java.nio.file.CopyOption;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+
 import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Calendar;
 import java.util.Objects;
+
+import util.trace.Tracer;
 
 public class FileTreeManager {
 
@@ -30,7 +36,7 @@ public class FileTreeManager {
 
     public static void checkPurgeRoot() throws IOException {
         if (doPurgeRoot()) {
-        	System.out.println ("Purging root");
+        	Tracer.info(FileTreeManager.class, "Purging root");
             purge(root);
         }
     }
@@ -38,7 +44,7 @@ public class FileTreeManager {
     protected final static boolean PURGE_ENABLED = false;
 
     private static boolean doPurgeRoot() {
-    	System.out.println ("Checking Purging root");
+    	Tracer.info(FileTreeManager.class, "Checking Purging root");
     	if (!PURGE_ENABLED)
     		return false;
         int year = Calendar.getInstance().get(Calendar.YEAR);
@@ -64,7 +70,7 @@ public class FileTreeManager {
             public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
                 if (e == null) {
                     try {
-                    	System.out.println ("deleting dir:" + dir);
+                    	Tracer.info (this,  "deleting dir:" + dir);
 
                         Files.delete(dir);
                     } catch (IOException ex) {

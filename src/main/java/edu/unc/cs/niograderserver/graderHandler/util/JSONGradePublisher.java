@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import util.trace.Tracer;
 import edu.unc.cs.niograderserver.graderHandler.sql.DatabaseReader;
 import edu.unc.cs.niograderserver.graderHandler.sql.DatabaseWriter;
 import edu.unc.cs.niograderserver.graderHandler.sql.IDatabaseReader;
@@ -164,7 +165,7 @@ public class JSONGradePublisher implements IGradePublisher {
         return this;
     }
     static {
-    	System.out.println ("Turning off logging in:" + "JSONGradePublishing");
+    	Tracer.info (JSONGradePublisher.class, "Turning off logging in:" + "JSONGradePublishing");
         LOG.setLevel(Level.OFF);
     }
 }
