@@ -1,6 +1,12 @@
 package edu.unc.cs.dispatcherServer;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import edu.unc.cs.niograderserver.GraderWebServer;
 import gradingTools.server.RemoteGraderServer;
@@ -15,20 +21,50 @@ import port.PortAccessKind;
 
 
 public class ADispatcherServerLauncher extends AnAbstractDuplexRPCServerPortLauncher implements DispatcherServerLauncher   {
+	static final String GRADER_REGISTRY_FILE_NAME = "config/graderRegistry.csv";
+	static DispatcherServerLauncher singleton;
+	Map<String, String> graderRegistry = new HashMap();
+	
+	void init() {
+		singleton = this;
+		try {
+		List<String> aLines = Files.readAllLines(Paths.get(GRADER_REGISTRY_FILE_NAME));
+		for (String aLine:aLines) {
+			String[] aPair = aLine.split(",");
+			graderRegistry.put(aPair[0].trim(), aPair[1].trim());
+		}
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+	@Override
+	public String getCommand(String aClientName) {
+		
+		return graderRegistry.get(aClientName);
+	}
+	
+	public static DispatcherServerLauncher getSingleton() {
+		return singleton;
+	}
+	
 	public ADispatcherServerLauncher(String aServerName,
 			String aServerPort) {
 		super (aServerName, aServerPort);
+		init();
 	}
 	public ADispatcherServerLauncher() {
+		init();
 	}
 
 	protected DispatcherRegistry getDispatcherRegistry() {
 		return new ADispatcherRegistry();
 	}
 	
-//	protected  ConnectionListener getConnectionListener (InputPort anInputPort) {
-//		return new ATracingConnectionListener(anInputPort);
-//	}
+	protected  ConnectionListener getConnectionListener (InputPort anInputPort) {
+		return new ATracingConnectionListener(anInputPort);
+	}
 //	protected PortAccessKind getPortAccessKind() {
 //		return PortAccessKind.DUPLEX;
 //	}

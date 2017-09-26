@@ -12,6 +12,21 @@ public class AGraderServerManager implements GraderServerManager{
 		graderServerDescrptions.add(aDriverRegistration);
 //		aDriverRegistration.getRemoteGraderServer().drive(new String[]{});
 	}
+	@Override
+	public void unregister(String aClientName) {
+		int aRegistryIndex = 0;
+		for (;aRegistryIndex < graderServerDescrptions.size(); aRegistryIndex++) {
+			if (graderServerDescrptions.get(
+					aRegistryIndex).getGraderServerDescription().getClientName().equals(aClientName)) {
+				break;
+			}
+		}
+		if (aRegistryIndex < graderServerDescrptions.size() ) {
+			graderServerDescrptions.remove(aRegistryIndex);
+		} else {
+			System.err.println("Client " + aClientName + " not found");
+		}
+	}
 
 	@Override
 	public RemoteGraderServer getGraderServerObject(

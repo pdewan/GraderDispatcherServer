@@ -6,7 +6,7 @@ public class ADispatcherRegistry implements DispatcherRegistry {
 
 
 	@Override
-	public void registerDriverServer(RemoteGraderServer aServerObject,
+	public void registerDriverServer( RemoteGraderServer aServerObject,
 			GraderServerDescription anAssignmentDescription) {
 		
 		AGraderServerManager.getDispatcherManager().
