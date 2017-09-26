@@ -37,6 +37,30 @@ public class ADispatcherServerLauncher extends AnAbstractDuplexRPCServerPortLaun
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		execAll();
+		
+		
+	}
+	protected void execAll() {
+		for (String aClientName:graderRegistry.keySet()) {
+			exec(aClientName);
+		}
+	}
+	@Override
+	public Process exec(String aClientName) {
+		try {
+		   String aCommand = getCommand(aClientName);
+			if (aCommand != null) {
+				return Runtime.getRuntime().exec(aCommand);
+			} else {
+				return null;
+			}
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	
 		
 	}
 	@Override
