@@ -1,6 +1,5 @@
 package edu.unc.cs.niograderserver.graderHandler.pages;
 
-import util.trace.Traceable;
 import util.trace.Tracer;
 import edu.unc.cs.htmlBuilder.HTMLFile;
 import edu.unc.cs.htmlBuilder.body.Body;

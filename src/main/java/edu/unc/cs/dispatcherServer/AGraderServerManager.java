@@ -6,7 +6,7 @@ import java.util.List;
 import gradingTools.server.RemoteGraderServer;
 
 public class AGraderServerManager implements GraderServerManager{
-	List<GraderServerRegistration> graderServerDescrptions = new ArrayList();
+	List<GraderServerRegistration> graderServerDescrptions = new ArrayList<>();
 	@Override
 	public void register(GraderServerRegistration aDriverRegistration) {
 		graderServerDescrptions.add(aDriverRegistration);

@@ -1,7 +1,6 @@
 package edu.unc.cs.niograderserver.graderHandler.util;
 
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryNotEmptyException;
@@ -61,7 +60,11 @@ public class FileTreeManager {
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 if (!file.toFile().getName().endsWith(".bak") && !file.toFile().getName().equals("grades.csv")) {
 //                	System.out.println ("deleting file:" + file);
-                    Files.delete(file);
+                	try {
+                		Files.deleteIfExists(file);
+                	} catch (Exception e) {
+                		
+                	}
                 }
                 return FileVisitResult.CONTINUE;
             }
@@ -72,9 +75,9 @@ public class FileTreeManager {
                     try {
                     	Tracer.info (this,  "deleting dir:" + dir);
 
-                        Files.delete(dir);
+                        Files.deleteIfExists(dir);
                     } catch (IOException ex) {
-                        if (!(ex instanceof DirectoryNotEmptyException || ex instanceof FileNotFoundException)) {
+                        if (!(ex instanceof DirectoryNotEmptyException)) {
                             throw ex;
                         }
                     }

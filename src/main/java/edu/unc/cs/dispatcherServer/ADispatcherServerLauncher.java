@@ -1,21 +1,24 @@
 package edu.unc.cs.dispatcherServer;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import edu.unc.cs.niograderserver.GraderWebServer;
-import gradingTools.server.RemoteGraderServer;
 import inputport.ConnectionListener;
 import inputport.InputPort;
 import inputport.rpc.duplex.AnAbstractDuplexRPCServerPortLauncher;
 import inputport.rpc.duplex.DuplexRPCServerInputPort;
 import port.ATracingConnectionListener;
-import port.PortAccessKind;
 
 
 
@@ -23,10 +26,14 @@ import port.PortAccessKind;
 public class ADispatcherServerLauncher extends AnAbstractDuplexRPCServerPortLauncher implements DispatcherServerLauncher   {
 	static final String GRADER_REGISTRY_FILE_NAME = "config/graderRegistry.csv";
 	static DispatcherServerLauncher singleton;
-	Map<String, String> graderRegistry = new HashMap();
+	Map<String, String> graderRegistry = new HashMap<>();
+	
+	private ExecutorService executor;
 	
 	void init() {
 		singleton = this;
+		executor = new ThreadPoolExecutor(1,Integer.MAX_VALUE,10,TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+		
 		try {
 		List<String> aLines = Files.readAllLines(Paths.get(GRADER_REGISTRY_FILE_NAME));
 		for (String aLine:aLines) {
@@ -37,7 +44,6 @@ public class ADispatcherServerLauncher extends AnAbstractDuplexRPCServerPortLaun
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		execAll();
 		
 		
 	}
@@ -47,25 +53,21 @@ public class ADispatcherServerLauncher extends AnAbstractDuplexRPCServerPortLaun
 		}
 	}
 	@Override
-	public Process exec(String aClientName) {
-		try {
-		   String aCommand = getCommand(aClientName);
-			if (aCommand != null) {
-				return Runtime.getRuntime().exec(aCommand);
-			} else {
-				return null;
-			}
+	public Future<Void> exec(String aClientName) {
 		
-		} catch (Exception e) {
-			e.printStackTrace();
+		String aCommand = getCommand(aClientName);
+		if (aCommand != null) {
+			// runs the command and will restart it on failure unless it fails 3 times in one second
+			System.out.println("*** Submitting command: " + aCommand);
+			return executor.submit(RestartingExternalGraderCallable.of(aCommand, 3, 1, ChronoUnit.SECONDS));
+		} else {
+			System.out.println("*** Null command");
 			return null;
 		}
-	
 		
 	}
 	@Override
 	public String getCommand(String aClientName) {
-		
 		return graderRegistry.get(aClientName);
 	}
 	
@@ -106,15 +108,22 @@ public class ADispatcherServerLauncher extends AnAbstractDuplexRPCServerPortLaun
 //	}
 	
 	public static void main (String[] args) {
-		
 
-
-		(new ADispatcherServerLauncher(DISPATCHER_SERVER_NAME, DISPATCHER_SERVER_ID)).launch();
+		ADispatcherServerLauncher laucher = new ADispatcherServerLauncher(DISPATCHER_SERVER_NAME, DISPATCHER_SERVER_ID);
+		laucher.launch();
+		try {
+			TimeUnit.SECONDS.sleep(1);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+		laucher.execAll();
 		try {
 			GraderWebServer.main(new String[]{});
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			laucher.executor.shutdownNow();
 		}
 	}
 }

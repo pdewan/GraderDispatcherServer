@@ -7,10 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import util.trace.Tracer;
 
 /**
  * @author Andrew Vitkus
@@ -24,8 +21,8 @@ public class DatabaseWriter implements IDatabaseWriter {
     private IDatabaseReader reader;
 
     public DatabaseWriter() {
-    	Tracer.info(this, "Turning off logging in:" + this);
-        LOG.setLevel(Level.INFO);
+//    	Tracer.info(this, "Turning off logging in:" + this);
+//        LOG.setLevel(Level.INFO);
     }
 
     public DatabaseWriter(String username, String password, String server) throws SQLException {
