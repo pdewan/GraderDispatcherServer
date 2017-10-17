@@ -19,9 +19,7 @@ import inputport.InputPort;
 import inputport.rpc.duplex.AnAbstractDuplexRPCServerPortLauncher;
 import inputport.rpc.duplex.DuplexRPCServerInputPort;
 import port.ATracingConnectionListener;
-
-
-
+import edu.unc.cs.dispatcherServer.DispatcherRegistry;
 
 public class ADispatcherServerLauncher extends AnAbstractDuplexRPCServerPortLauncher implements DispatcherServerLauncher   {
 	static final String GRADER_REGISTRY_FILE_NAME = "config/graderRegistry.csv";
@@ -116,14 +114,17 @@ public class ADispatcherServerLauncher extends AnAbstractDuplexRPCServerPortLaun
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
+
+		// on JVM shutdown kill any processes the executor is running
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> laucher.executor.shutdownNow()));
+		
+		// start all grading handlers in the config file
 		laucher.execAll();
+		
 		try {
 			GraderWebServer.main(new String[]{});
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} finally {
-			laucher.executor.shutdownNow();
 		}
 	}
 }
