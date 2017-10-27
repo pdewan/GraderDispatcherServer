@@ -19,7 +19,6 @@ import inputport.InputPort;
 import inputport.rpc.duplex.AnAbstractDuplexRPCServerPortLauncher;
 import inputport.rpc.duplex.DuplexRPCServerInputPort;
 import port.ATracingConnectionListener;
-import edu.unc.cs.dispatcherServer.DispatcherRegistry;
 
 public class ADispatcherServerLauncher extends AnAbstractDuplexRPCServerPortLauncher implements DispatcherServerLauncher   {
 	static final String GRADER_REGISTRY_FILE_NAME = "config/graderRegistry.csv";

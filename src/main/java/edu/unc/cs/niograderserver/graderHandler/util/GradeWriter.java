@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -23,11 +25,12 @@ public class GradeWriter implements IGradeWriter {
     protected final String assignmentName;
     
     private static final String ENCODING = "UTF-8";
-
+    
     public GradeWriter(String assignmentName, Path gradeFile) throws IOException, FileNotFoundException, InterruptedException, ExecutionException {
-        if (!gradeFile.toFile().exists()) {
+        if (!Files.exists(gradeFile)) {
         	Tracer.info(this, "Creating file:" + gradeFile.toFile().getAbsolutePath());
-            gradeFile.toFile().createNewFile();
+        	FileTreeManager.createRWXFile(gradeFile);
+//            Files.createFile(gradeFile, FileTreeManager.ug_rwx);
         }
         this.gradeFile = AsynchronousFileChannel.open(gradeFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.READ);
         this.assignmentName = assignmentName;
@@ -40,11 +43,21 @@ public class GradeWriter implements IGradeWriter {
 
     @Override
     public void write(IGradingData data) throws FileNotFoundException, IOException, InterruptedException, ExecutionException {
-    	Future<FileLock> flock = gradeFile.lock();
+    	Future<FileLock> flock = null;
+    	do {
+    		try {
+    			gradeFile.lock();
+    		} catch(OverlappingFileLockException e) { }
+    	} while(flock == null);
         String newLine = formatData(data);
         Tracer.info (this, "Writing to file:" +newLine);
 
-        FileLock lock = flock.get();
+        FileLock lock = null;
+        do {
+        	try {
+        		lock = flock.get();
+        	} catch (InterruptedException e) { }
+        } while (lock == null);
         /*
          * Read the file in then build an array of the lines.
          */
@@ -90,9 +103,19 @@ public class GradeWriter implements IGradeWriter {
 
     protected void initializeFile() throws FileNotFoundException, IOException, InterruptedException, ExecutionException {
         System.out.println ("Initializing file");
-    	Future<FileLock> flock = gradeFile.lock();
+        Future<FileLock> flock = null;
+    	do {
+    		try {
+    			gradeFile.lock();
+    		} catch(OverlappingFileLockException e) { }
+    	} while(flock == null);
         String header = assignmentName + "\tScores\t\t\t\r\nDisplay ID\tID\tLast Name\tFirst Name\tgrade\r\n\t\t\t\t\r\n";
-        FileLock lock = flock.get();
+        FileLock lock = null;
+        do {
+        	try {
+        		lock = flock.get();
+        	} catch (InterruptedException e) { }
+        } while (lock == null);
         ByteBuffer expectedHeader = ByteBuffer.wrap(header.getBytes(ENCODING));
         ByteBuffer fileData = ByteBuffer.allocate(expectedHeader.capacity());
         ((AsynchronousFileChannel) lock.acquiredBy()).read(fileData, 0).get();

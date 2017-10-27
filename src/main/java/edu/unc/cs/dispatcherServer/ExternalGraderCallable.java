@@ -23,7 +23,7 @@ public class ExternalGraderCallable implements Callable<Integer> {
 					ret = p.waitFor();
 					doWait = false;
 				} catch (InterruptedException e) {
-					
+					System.out.println("*** Interrupted ***");
 				}
 			}
 			return ret;

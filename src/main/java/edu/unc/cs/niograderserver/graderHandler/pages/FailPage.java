@@ -1,6 +1,5 @@
 package edu.unc.cs.niograderserver.graderHandler.pages;
 
-import util.trace.Tracer;
 import edu.unc.cs.htmlBuilder.HTMLFile;
 import edu.unc.cs.htmlBuilder.body.Body;
 import edu.unc.cs.htmlBuilder.body.Header;
@@ -19,6 +18,7 @@ import edu.unc.cs.htmlBuilder.head.MetaAttr;
 import edu.unc.cs.htmlBuilder.head.Title;
 import edu.unc.cs.htmlBuilder.util.IColors;
 import edu.unc.cs.htmlBuilder.util.IStyleManager;
+import util.trace.Tracer;
 
 /**
  *
