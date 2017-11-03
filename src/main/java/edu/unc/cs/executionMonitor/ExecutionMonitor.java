@@ -80,27 +80,37 @@ public class ExecutionMonitor {
 			}
 		}
 		try {
+			// create the file system watcher and set it to watch the directory containing
+			// the montior file for deletions
 			WatchService watcher = FileSystems.getDefault().newWatchService();
 			monitorDir.register(watcher, StandardWatchEventKinds.ENTRY_DELETE);
+			
+			// keep checking for events until the program is interrupted
 			while (!Thread.currentThread().isInterrupted()) {
 				WatchKey key = null;
+				// get a watched directory from file system watcher
 				try {
 					key = watcher.take();
 				} catch (InterruptedException e) {
 					System.exit(-1);
 				}
 
+				// look at all the events
 				for (WatchEvent<?> event : key.pollEvents()) {
 					WatchEvent.Kind<?> kind = event.kind();
+					// if it is a deletion (all should be since we are only watching for these)
 					if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
 						@SuppressWarnings("unchecked")
 						WatchEvent<Path> pEvent = (WatchEvent<Path>) event;
 						Path deletedPath = pEvent.context().toAbsolutePath();
+						// is the deleted file the monitor?
 						if (fullMonitorPath.equals(deletedPath)) {
 							System.out.println("Kill triggered");
+							// run the kill script
 							ProcessBuilder pb = new ProcessBuilder("bash", "-c", killScript.toString());
 							pb.inheritIO();
 							Process p = pb.start();
+							// run the kill script till it returns or we are interrupted and should end
 							try {
 								p.waitFor();
 							} catch (InterruptedException e) {
@@ -116,6 +126,7 @@ public class ExecutionMonitor {
 						}
 					}
 				}
+				// mark the current monitor as finished and reset to get new events or die if no longer valid
 				if (!key.reset()) {
 					System.exit(-1);
 				}
