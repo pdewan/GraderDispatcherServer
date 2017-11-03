@@ -122,6 +122,13 @@ public class FileTreeManager {
     }
 }
 
+    /**
+     * Creates a copy of a file or recursively copies a directory from one location to another
+     * 
+     * @param source file/directory to copy
+     * @param destination name/location of created copy
+     * @throws IOException
+     */
     public static void copy(Path source, Path destination) throws IOException {
         Objects.requireNonNull(source, "Source path cannot be null");
         Objects.requireNonNull(destination, "Source destination path cannot be null");
@@ -163,6 +170,13 @@ public class FileTreeManager {
         });
     }
 
+    /**
+     * Moves a file or recursively moves a directory
+     * 
+     * @param source file/directory to move
+     * @param destination new name/location of file/directory
+     * @throws IOException
+     */
     public static void move(Path source, Path destination) throws IOException {
         Objects.requireNonNull(source, "Source path cannot be null");
         Objects.requireNonNull(destination, "Source destination path cannot be null");
@@ -206,6 +220,16 @@ public class FileTreeManager {
         });
     }
     
+    /**
+     * Creates a file with rwxrwx--- permissions.
+     * 
+     * @param path The file to create
+     * @return The created file
+     * @throws UnsupportedOperationException
+     * @throws FileAlreadyExistsException
+     * @throws IOException
+     * @throws SecurityException
+     */
     public static Path createRWXFile(Path path) throws UnsupportedOperationException, FileAlreadyExistsException, IOException, SecurityException {
     	if (isPosix) {
     		System.out.println("Creating posix file: " + path);
@@ -223,6 +247,16 @@ public class FileTreeManager {
     	}
     }
 
+    /**
+     * Recursively creates a directory with rwxrwx--- permissions.
+     * 
+     * @param path The directory to create
+     * @return The created directory
+     * @throws UnsupportedOperationException
+     * @throws FileAlreadyExistsException
+     * @throws IOException
+     * @throws SecurityException
+     */
     public static Path createRWXDirectories(Path path) throws UnsupportedOperationException, FileAlreadyExistsException, IOException, SecurityException {
     	if (isPosix) {
     		System.out.println("Creating posix directory: " + path);

@@ -20,24 +20,33 @@ public class RestartingExternalGraderCallable implements Callable<Void> {
 
 	@Override
 	public Void call() throws Exception {
-		Instant start = Instant.now();
-		System.out.println("--- Calling");
-		ExternalGraderCallable.of(command).call();
-		System.out.println("--- Call returned");
-		int times = 0;
-		while (times < retries) {
-			times++;
-			Instant now = Instant.now();
-			if (start.plus(Duration.of(time, unit)).isBefore(now)) {
-				times = 0;
-				start = now;
-			}
-			System.out.println("*** Restarting command: " + command);
+		try {
+			Instant start = Instant.now();
 			System.out.println("--- Calling");
 			ExternalGraderCallable.of(command).call();
 			System.out.println("--- Call returned");
+			int times = 0;
+			while (times < retries) {
+				if (Thread.interrupted()) {
+					throw new InterruptedException();
+				}
+				times++;
+				Instant now = Instant.now();
+				if (start.plus(Duration.of(time, unit)).isBefore(now)) {
+					times = 0;
+					start = now;
+				}
+				System.out.println("*** Restarting command: " + command);
+				System.out.println("--- Calling");
+				ExternalGraderCallable.of(command).call();
+				System.out.println("--- Call returned");
+			}
+			System.out.println("*** Retry count exceeded: " + command);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			System.out.println("*** interrupted: " + command);
+			throw e;
 		}
-		System.out.println("*** Retry count exceeded: " + command);
 		return null;
 	}
 
