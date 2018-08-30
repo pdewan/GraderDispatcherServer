@@ -2,6 +2,8 @@ package edu.unc.cs.niograderserver.pages;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -11,9 +13,9 @@ import org.apache.commons.httpclient.HttpStatus;
 
 import edu.unc.cs.httpserver.util.ResponseStatusNotice;
 
-public class NotifyOnRequestPageGenerator implements INotifyOnRequestPageGenerator {
+public class NotifyAndRunOnRequestPageGenerator implements INotifyAndRunOnRequestPageGenerator {
 
-    private static final Logger LOG = Logger.getLogger(NotifyOnRequestPageGenerator.class.getName());
+    private static final Logger LOG = Logger.getLogger(NotifyAndRunOnRequestPageGenerator.class.getName());
 
     private final String[] methods = new String[]{"GET"};
     
@@ -22,14 +24,28 @@ public class NotifyOnRequestPageGenerator implements INotifyOnRequestPageGenerat
     private final String subject;
     private final String mailBody;
     
+    private final Runnable reaction;
+    private final long delay;
+    private final TimeUnit unit;
+    
     private final String logMessage;
     
+    public NotifyAndRunOnRequestPageGenerator(String page, String[] emails, String subject, String message, Runnable reaction) {
+    	this(new String[]{page}, emails, subject, message, reaction, 0, null);
+    }
 
-    public NotifyOnRequestPageGenerator(String page, String[] emails, String subject, String message) {
-    	this(new String[]{page}, emails, subject, message);
+    public NotifyAndRunOnRequestPageGenerator(String page, String[] emails, String subject, String message, Runnable reaction, long time, TimeUnit unit) {
+    	this(new String[]{page}, emails, subject, message, reaction, time, unit);
     }
     
-    public NotifyOnRequestPageGenerator(String[] pages, String[] emails, String subject, String message) {
+    public NotifyAndRunOnRequestPageGenerator(String[] pages, String[] emails, String subject, String message, Runnable reaction) {
+    	this(pages, emails, subject, message, reaction, 0, null);
+    }
+    
+    public NotifyAndRunOnRequestPageGenerator(String[] pages, String[] emails, String subject, String message, Runnable reaction, long time, TimeUnit unit) {
+    	this.reaction = reaction;
+    	this.delay = time;
+    	this.unit = unit;
     	StringBuilder sb = new StringBuilder();
     	
     	for(String s : emails) {
@@ -63,7 +79,7 @@ public class NotifyOnRequestPageGenerator implements INotifyOnRequestPageGenerat
     			sb.append(" ").append(s);
     		}
     	}
-    	sb.append(". Sending emails.");
+    	sb.append(". Sending emails and running reaction.");
     	logMessage = sb.toString();
     }
 
@@ -84,6 +100,12 @@ public class NotifyOnRequestPageGenerator implements INotifyOnRequestPageGenerat
 		} catch (IOException | InterruptedException e) {
 			LOG.log(Level.WARNING, "Couldn't send error notification message.", e);
 		}
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        if (delay == 0) {
+    		executor.submit(reaction);
+    	} else {
+    		executor.schedule(reaction, delay, unit);
+    	}
     	throw new ResponseStatusNotice(HttpStatus.SC_NO_CONTENT);
     }
 

@@ -58,7 +58,7 @@ public class JSONGradePublisher implements IGradePublisher {
 
             File jsonFile = resultsFile.toFile();
             if (!jsonFile.exists()) {
-                LOG.log(Level.WARNING, "Can''t read json outpt from file: {0}", jsonFile.getAbsolutePath());
+                LOG.log(Level.WARNING, "Can't read json outpt from file: {0}", jsonFile.getAbsolutePath());
             } else {
                 IJSONReader reader = new JSONReader(jsonFile);
                 int resultID = dr.readLatestResultID(assignmentSubmissionID);
